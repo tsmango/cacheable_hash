@@ -1,0 +1,31 @@
+Plugin Details
+--------------
+Rails.cache freezes values in hashes that are cached directly. CacheableHash is a wrapper for Hash objects that prevents that from happening. Changes to the Hash being wrapped are automatically persisted back to the cache store so that everything stays in sync.
+
+Examples
+--------
+An instance of CacheableHash is used like any other hash. A cache key is the only thing required.
+
+>> fruit = CacheableHash.new('fruit_hash_key', :hash => {:apple => 'red', :banana => 'yellow'}, :expires_in => 1.week)
+>> fruit[:banana]
+=> "yellow"
+
+Changes are automatically persisted.
+
+>> fruit = Rails.cache.read('fruit_hash_key')
+>> fruit[:apple]
+=> "red"
+
+>> fruit[:apple] = 'green'
+
+>> Rails.cache.read('fruit_hash_key')[:apple]
+=> "green"
+
+About Synchronicity
+-------------------
+Whenever a method is called on an instance of CacheableHash, that instance automatically writes itself back to the cache store. Often, this is unnecessary. If you call .keys, for example, there is no reason to write back to the cache store. Only when reading a value from the hash using [], is the copy in the cache store not specifically updated. But, rather than worrying about the specific methods that change the contents of the hash, it's safer to just update the instance in the cache store whenever not specifically reading values.
+
+Authors
+-------
+Thomas Mango
+http://slicedsoftware.com
